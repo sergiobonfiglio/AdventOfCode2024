@@ -29,7 +29,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("parsing templates directory: %s", err)
 	}
-	//tmpl.
 
 	dstPrefix := fmt.Sprintf("day%d", day)
 	dstPath := filepath.Join(dirname(), "..", dstPrefix)
