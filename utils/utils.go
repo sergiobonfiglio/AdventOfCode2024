@@ -38,3 +38,11 @@ func FilterNil[T any](x []*T) []*T {
 	}
 	return next
 }
+
+// Coalesce returns the value of `v1` if it's not nil; otherwise, it returns `fallback`
+func Coalesce[T any](v1 *T, fallback T) T {
+	if v1 == nil {
+		return fallback
+	}
+	return *v1
+}

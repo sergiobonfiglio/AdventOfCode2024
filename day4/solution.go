@@ -1,6 +1,9 @@
 package main
 
-import "strings"
+import (
+	"AdventOfCode2024/utils"
+	"strings"
+)
 
 // 2649 too high
 func part1(input string) any {
@@ -109,6 +112,35 @@ func part1(input string) any {
 }
 
 func part2(input string) any {
+	matrix := utils.NewMatrixFromLines(input)
+
+	numMatches := 0
+
+	for val, ok := matrix.Next(); ok; val, ok = matrix.Next() {
+		if val == 'A' {
+			ul, ur, dl, dr := matrix.UpLeft(), matrix.UpRight(), matrix.DownLeft(), matrix.DownRight()
+
+			if !utils.NotNil([]*rune{ul, ur, dl, dr}) {
+				continue
+			}
+
+			w1 := string([]rune{*ul, *dr})
+			w2 := string([]rune{*ur, *dl})
+
+			w1Match := w1 == "MS" || w1 == "SM"
+			w2Match := w2 == "MS" || w2 == "SM"
+
+			if w1Match && w2Match {
+				numMatches++
+			}
+
+		}
+	}
+
+	return numMatches
+}
+
+func part2_old(input string) any {
 	matrix := [][]rune{}
 	for _, line := range strings.Split(input, "\n") {
 		matrix = append(matrix, []rune(line))
