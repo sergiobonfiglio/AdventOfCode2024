@@ -5,8 +5,8 @@ import (
 	"strings"
 )
 
-func ToIntegerArray[T int | int64](str string) []T {
-	parts := strings.Split(strings.TrimSpace(str), " ")
+func ToIntegerArray[T int | int64](str string, sep string) []T {
+	parts := strings.Split(strings.TrimSpace(str), sep)
 
 	var res []T
 	for _, part := range parts {
@@ -21,12 +21,12 @@ func ToIntegerArray[T int | int64](str string) []T {
 	return res
 }
 
-func ToIntArray(str string) []int {
-	return ToIntegerArray[int](str)
+func ToIntArray(str string, sep string) []int {
+	return ToIntegerArray[int](str, sep)
 }
 
-func ToInt64Array(str string) []int64 {
-	return ToIntegerArray[int64](str)
+func ToInt64Array(str string, sep string) []int64 {
+	return ToIntegerArray[int64](str, sep)
 }
 
 func FilterNil[T any](x []*T) []*T {
