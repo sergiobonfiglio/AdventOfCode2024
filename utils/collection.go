@@ -1,6 +1,10 @@
 package utils
 
-import "golang.org/x/exp/constraints"
+import (
+	"cmp"
+	"golang.org/x/exp/constraints"
+	"sort"
+)
 
 func Map[T, R any](array []T, fn func(T) R) []R {
 	var result []R
@@ -72,6 +76,24 @@ func ToDictionary[K comparable, V any](array []V, keyFn func(x V) K) map[K]V {
 		dict[key] = v
 	}
 	return dict
+}
+
+func GroupBy[K comparable, V any](array []V, keyFn func(x V) K) map[K][]V {
+	dict := make(map[K][]V)
+	for _, v := range array {
+		key := keyFn(v)
+		dict[key] = append(dict[key], v)
+	}
+	return dict
+}
+
+func SortedKeys[K cmp.Ordered, V any](x map[K]V) []K {
+	keys := make([]K, 0, len(x))
+	for k := range x {
+		keys = append(keys, k)
+	}
+	sort.Slice(keys, cmp.Less)
+	return keys
 }
 
 func SafeSum[T constraints.Integer | constraints.Float](numbers ...*T) T {

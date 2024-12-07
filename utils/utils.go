@@ -46,3 +46,7 @@ func Coalesce[T any](v1 *T, fallback T) T {
 	}
 	return *v1
 }
+
+func Ptr[T any](x T) *T {
+	return &x
+}

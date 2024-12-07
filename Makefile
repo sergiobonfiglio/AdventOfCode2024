@@ -41,3 +41,18 @@ bench:
             sed 's/^day*//g' | sort -nr | head -1); \
     fi; \
 	go test -bench=. ./day$$day
+
+
+prof:
+	@if [ -n "$(DAY)" ]; then \
+        day=$(DAY); \
+    else \
+        day=$$(ls | egrep "day[0-9]+$$" | \
+            sed 's/^day*//g' | sort -nr | head -1); \
+    fi; \
+	if [ -n "$(PART)" ]; then \
+		go run ./day$$day -part $(PART) -prof true; \
+	else \
+		go run ./day$$day -part -1 -prof true; \
+	fi; \
+	go tool pprof -http=:8080 cpu.prof

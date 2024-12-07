@@ -4,6 +4,9 @@ import (
 	_ "embed"
 	"flag"
 	"fmt"
+	"log"
+	"os"
+	"runtime/pprof"
 	"strings"
 )
 
@@ -34,7 +37,7 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
-	fmt.Printf("== Day %d ==\n", {{.Day}})
+	fmt.Printf("== Day %d ==\n", 6)
 	if part == -1 {
 		fmt.Printf("Part 1: %v\n", part1(input))
 		fmt.Printf("Part 2: %v\n", part2(input))
@@ -44,4 +47,3 @@ func main() {
 		fmt.Printf("Part 1: %v\n", part2(input))
 	}
 }
-

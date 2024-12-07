@@ -5,10 +5,6 @@ type Iter[T any] interface {
 	Reset()
 }
 
-type Number interface {
-	~int | ~float32 | ~float64
-}
-
 type StepIter[T Number] struct {
 	current, end, step T
 }

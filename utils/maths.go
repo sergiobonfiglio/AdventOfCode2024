@@ -1,5 +1,9 @@
 package utils
 
+type Number interface {
+	~int | ~float32 | ~float64
+}
+
 func GCD[T int | int64](a, b T) T {
 	for b != 0 {
 		a, b = b, a%b
@@ -15,4 +19,8 @@ func LCM[T int | int64](a, b T, integers ...T) T {
 	}
 
 	return result
+}
+
+func Between[T Number](x, start, end T) bool {
+	return x >= start && x < end
 }

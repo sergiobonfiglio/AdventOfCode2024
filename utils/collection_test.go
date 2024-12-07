@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"golang.org/x/exp/constraints"
 	"reflect"
 	"testing"
@@ -137,6 +138,41 @@ func TestSafeSum(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := SafeSum(tt.args.numbers...); got != tt.want {
 				t.Errorf("SafeSum() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGroupBy(t *testing.T) {
+	type args[K comparable, V any] struct {
+		array []V
+		keyFn func(x V) K
+	}
+	type testCase[K comparable, V any] struct {
+		name string
+		args args[K, V]
+		want map[K][]V
+	}
+	tests := []testCase[string, int]{
+		{
+			name: "GroupBy",
+			args: args[string, int]{
+				array: []int{1, 2, 2, 1, 3, 1},
+				keyFn: func(x int) string {
+					return fmt.Sprintf("%d", x)
+				},
+			},
+			want: map[string][]int{
+				"1": {1, 1, 1},
+				"2": {2, 2},
+				"3": {3},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := GroupBy(tt.args.array, tt.args.keyFn); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GroupBy() = %v, want %v", got, tt.want)
 			}
 		})
 	}
