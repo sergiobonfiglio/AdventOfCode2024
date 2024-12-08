@@ -8,6 +8,7 @@ import (
 	"os"
 	"runtime/pprof"
 	"strings"
+	"time"
 )
 
 //go:embed input.txt
@@ -38,12 +39,19 @@ func main() {
 	}
 
 	fmt.Printf("== Day %d ==\n", 6)
-	if part == -1 {
-		fmt.Printf("Part 1: %v\n", part1(input))
-		fmt.Printf("Part 2: %v\n", part2(input))
-	} else if part == 1 {
-		fmt.Printf("Part 1: %v\n", part1(input))
-	} else if part == 2 {
-		fmt.Printf("Part 1: %v\n", part2(input))
+	if part == 1 || part == -1 {
+		sol, elapsed := getTime(part1)
+		fmt.Printf("Part 1: %v [%s]\n", sol, elapsed)
 	}
+	if part == 2 || part == -1 {
+		sol, elapsed := getTime(part2)
+		fmt.Printf("Part 2: %v [%s]\n", sol, elapsed)
+	}
+}
+
+func getTime(fn func(input string) any) (any, time.Duration) {
+	start := time.Now()
+	sol1 := fn(input)
+	elapsed := time.Since(start)
+	return sol1, elapsed
 }
