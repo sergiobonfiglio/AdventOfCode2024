@@ -126,7 +126,7 @@ func part2(input string) any {
 			}
 
 			fLen := blocks[i].len
-			free, _ := findLeftmostFree(freeBlocks, fLen)
+			free, freeIx := findLeftmostFree(freeBlocks, fLen)
 			if free != nil && free.offset < blocks[i].offset {
 
 				// move file
@@ -135,6 +135,10 @@ func part2(input string) any {
 				// resize space
 				free.len = free.len - fLen
 				free.offset += fLen
+
+				if free.len == 0 {
+					freeBlocks = append(freeBlocks[0:freeIx], freeBlocks[freeIx+1:]...)
+				}
 			}
 		}
 
