@@ -33,7 +33,7 @@ func TestPart2(t *testing.T) {
 		{
 			name:  "example",
 			input: `2333133121414131402`,
-			want:  int64(2858),
+			want:  2858,
 		},
 	}
 

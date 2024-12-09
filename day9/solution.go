@@ -126,8 +126,8 @@ func part2(input string) any {
 			}
 
 			fLen := blocks[i].len
-			free, freeIx := findLeftmostFree(freeBlocks, fLen)
-			if free != nil && free.offset < blocks[i].offset {
+			free, freeIx := findLeftmostFree(freeBlocks, fLen, blocks[i].offset)
+			if free != nil {
 
 				// move file
 				blocks[i].offset = free.offset
@@ -153,8 +153,11 @@ func part2(input string) any {
 	return nil
 }
 
-func findLeftmostFree(freeBlocks []*Block, minSize int) (*Block, int) {
+func findLeftmostFree(freeBlocks []*Block, minSize int, maxOffset int) (*Block, int) {
 	for i, block := range freeBlocks {
+		if block.offset > maxOffset {
+			return nil, -1
+		}
 		if block.len >= minSize {
 			return block, i
 		}
