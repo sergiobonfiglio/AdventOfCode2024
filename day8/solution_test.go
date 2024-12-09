@@ -1,7 +1,6 @@
 package main
 
 import (
-	"AdventOfCode2024/utils"
 	"testing"
 )
 
