@@ -56,6 +56,9 @@ func MapToInt(c rune) int {
 func NewIntMatrixFromLines(input string) *Matrix[int] {
 	matrix := [][]int{}
 	for _, line := range strings.Split(input, "\n") {
+		if line == "" {
+			continue
+		}
 		runes := []rune(line)
 		mapped := []int{}
 		for i := 0; i < len(runes); i++ {
@@ -91,6 +94,16 @@ func (m *Matrix[T]) Set(row, col int) bool {
 	m.CurrRow = row
 	m.CurrCol = col
 	return true
+}
+
+func (m *Matrix[T]) GetAt(row int, col int) *T {
+	if !m.IsIn(row, col) {
+		return nil
+	}
+	return &m.Matrix[row][col]
+}
+func (m *Matrix[T]) GetAtCell(cell *Cell) *T {
+	return m.GetAt(cell.R, cell.C)
 }
 
 func (m *Matrix[T]) Curr() *T {
