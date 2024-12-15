@@ -72,6 +72,9 @@ func NewIntMatrixFromLines(input string) *Matrix[int] {
 func NewMatrixFromLines(input string) *Matrix[rune] {
 	matrix := [][]rune{}
 	for _, line := range strings.Split(input, "\n") {
+		if line == "" {
+			continue
+		}
 		runes := []rune(line)
 		matrix = append(matrix, runes)
 	}
@@ -110,7 +113,14 @@ func (m *Matrix[T]) Curr() *T {
 	if !m.IsIn(m.CurrRow, m.CurrCol) {
 		return nil
 	}
-	return &m.Matrix[m.CurrRow][m.CurrCol-1]
+	return &m.Matrix[m.CurrRow][m.CurrCol]
+}
+
+func (m *Matrix[T]) CurrCell() *Cell {
+	if !m.IsIn(m.CurrRow, m.CurrCol) {
+		return nil
+	}
+	return NewCell(m.CurrRow, m.CurrCol)
 }
 
 func (m *Matrix[T]) Left() *T {
