@@ -239,8 +239,8 @@ func (m *Matrix[T]) DownRightBy(x int) *T {
 func (m *Matrix[T]) Print() {
 	for r := 0; r < len(m.Matrix); r++ {
 		for c := 0; c < len(m.Matrix[r]); c++ {
-			println(m.Matrix[r][c])
+			print(m.Matrix[r][c])
 		}
-		println("\n")
+		println()
 	}
 }
