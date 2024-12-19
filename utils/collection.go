@@ -2,8 +2,10 @@ package utils
 
 import (
 	"cmp"
+	"fmt"
 	"golang.org/x/exp/constraints"
 	"sort"
+	"strings"
 )
 
 func Map[T, R any](array []T, fn func(T) R) []R {
@@ -124,4 +126,13 @@ func NotNil[T any](slice []*T) bool {
 		}
 	}
 	return true
+}
+
+func PrintFunc[T any](x []T, fn func(T) string) {
+	str := strings.Join(Map(x, fn), ", ")
+	fmt.Printf("[%s]\n", str)
+}
+
+func RuneToString(r rune) string {
+	return string(r)
 }

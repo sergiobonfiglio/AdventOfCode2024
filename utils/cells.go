@@ -17,6 +17,21 @@ func NewCell(r, c int) *Cell {
 	}
 }
 
+func (c Cell) Dir(x string) Cell {
+	switch x {
+	case "^":
+		return c.Up(1)
+	case "v":
+		return c.Down(1)
+	case "<":
+		return c.Left(1)
+	case ">":
+		return c.Right(1)
+	default:
+		panic(fmt.Sprintf("Unknown direction %s", x))
+	}
+}
+
 func (c Cell) Up(d int) Cell {
 	return Cell{
 		R: c.R - d,

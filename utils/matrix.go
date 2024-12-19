@@ -20,7 +20,7 @@ func (m *Matrix[T]) Reset() {
 	m.CurrCol = 0
 }
 
-func (m *Matrix[T]) Next() (T, bool) {
+func (m *Matrix[T]) NextCell() (*Cell, bool) {
 	nextC := (m.CurrCol + 1) % len(m.Matrix[m.CurrRow])
 
 	//skip first increment if this is the first Next()
@@ -31,12 +31,20 @@ func (m *Matrix[T]) Next() (T, bool) {
 
 	if nextC < m.CurrCol {
 		if m.CurrRow+1 == len(m.Matrix) {
-			return *new(T), false
+			return nil, false
 		}
 		m.CurrRow = (m.CurrRow + 1) % len(m.Matrix)
 	}
 	m.CurrCol = nextC
-	return m.Matrix[m.CurrRow][m.CurrCol], true
+	return NewCell(m.CurrRow, m.CurrCol), true
+}
+
+func (m *Matrix[T]) Next() (T, bool) {
+	nextC, ok := m.NextCell()
+	if !ok {
+		return *new(T), false
+	}
+	return *m.GetAtCell(nextC), true
 }
 
 func NewMatrix[T any](matrix [][]T) *Matrix[T] {
@@ -82,6 +90,22 @@ func NewMatrixFromLines(input string) *Matrix[rune] {
 	return NewMatrix[rune](matrix)
 }
 
+func NewMatrixFromLinesStr(input string) *Matrix[string] {
+	var matrix [][]string
+	for _, line := range strings.Split(input, "\n") {
+		if line == "" {
+			continue
+		}
+		var runes []string
+		for _, r := range line {
+			runes = append(runes, string(r))
+		}
+		matrix = append(matrix, runes)
+	}
+
+	return NewMatrix[string](matrix)
+}
+
 func (m *Matrix[T]) IsIn(row, col int) bool {
 	if row < 0 || row >= len(m.Matrix) ||
 		col < 0 || col >= len(m.Matrix[row]) {
@@ -97,6 +121,17 @@ func (m *Matrix[T]) Set(row, col int) bool {
 	m.CurrRow = row
 	m.CurrCol = col
 	return true
+}
+
+func (m *Matrix[T]) Swap(a, b *Cell) {
+	aVal := *m.GetAtCell(a)
+	bVal := *m.GetAtCell(b)
+	m.SetValAtCell(b, aVal)
+	m.SetValAtCell(a, bVal)
+}
+
+func (m *Matrix[T]) SetValAtCell(curr *Cell, val T) {
+	m.Matrix[curr.R][curr.C] = val
 }
 
 func (m *Matrix[T]) GetAt(row int, col int) *T {
@@ -240,6 +275,15 @@ func (m *Matrix[T]) Print() {
 	for r := 0; r < len(m.Matrix); r++ {
 		for c := 0; c < len(m.Matrix[r]); c++ {
 			print(m.Matrix[r][c])
+		}
+		println()
+	}
+}
+
+func (m *Matrix[T]) PrintFunc(fn func(x T) string) {
+	for r := 0; r < len(m.Matrix); r++ {
+		for c := 0; c < len(m.Matrix[r]); c++ {
+			print(fn(m.Matrix[r][c]))
 		}
 		println()
 	}
