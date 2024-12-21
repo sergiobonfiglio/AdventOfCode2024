@@ -57,6 +57,15 @@ func (c Cell) Right(d int) Cell {
 	}
 }
 
+func (c Cell) NeighborsCross() []Cell {
+	return []Cell{
+		c.Up(1),
+		c.Right(1),
+		c.Down(1),
+		c.Left(1),
+	}
+}
+
 func (c Cell) String() string {
 	return fmt.Sprintf("(%d,%d)", c.R, c.C)
 }

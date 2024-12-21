@@ -26,12 +26,14 @@ func part1(input string) any {
 	}
 	maze.Reset()
 
-	visited := &sync.Map{}
-	visited.Store(*start, 0)
+	//visited := &sync.Map{}
+	//visited.Store(*start, 0)
+	//
+	//bestScore := solveMaze(maze, nil, start, 0, visited)
+	//return bestScore
 
-	bestScore := solveMaze(maze, nil, start, 0, visited)
-
-	return bestScore
+	dist, _ := mazeShortestPath(maze, start)
+	return dist[*end]
 }
 
 func part2(input string) any {
@@ -50,19 +52,49 @@ func part2(input string) any {
 		panic("start or end not found")
 	}
 	maze.Reset()
-	visited := &sync.Map{}
-	visited.Store(DirCell{
-		dir:  '>',
-		Cell: *start,
-	}, 0)
 
-	visited1 := &sync.Map{}
-	visited1.Store(*start, 0)
+	_, prevs := mazeShortestPaths(maze, start)
 
-	bestScore := solveMaze(maze, nil, start, 0, visited1)
-	_, _, bestPathCells := solveMaze2(maze, nil, start, 0, bestScore, map[utils.Cell]bool{*start: true}, visited)
+	var ends []DirCell
+	for _, r := range []rune{'^', '>', 'v', '<'} {
+		dirEnd := DirCell{
+			dir:  r,
+			Cell: *end,
+		}
+		ends = append(ends, dirEnd)
+	}
 
-	return len(bestPathCells)
+	bpcells := map[utils.Cell]bool{}
+	countCellsInShortestPaths(prevs, ends, bpcells)
+
+	//for cell := range bpcells {
+	//	maze.SetValAtCell(&cell, "O")
+	//}
+	//maze.Print()
+
+	return len(bpcells)
+
+	//visited := &sync.Map{}
+	//visited.Store(DirCell{
+	//	dir:  '>',
+	//	Cell: *start,
+	//}, 0)
+	//_, _, bestPathCells := solveMaze2(maze, nil, start, 0, bestScore, map[utils.Cell]bool{*start: true}, visited)
+	//return len(bestPathCells)
+}
+
+func countCellsInShortestPaths(prevs map[DirCell]map[DirCell]bool, targets []DirCell, visited map[utils.Cell]bool) {
+
+	for _, target := range targets {
+		visited[target.Cell] = true
+		var sources []DirCell
+		for source, _ := range prevs[target] {
+			visited[source.Cell] = true
+			sources = append(sources, source)
+		}
+		countCellsInShortestPaths(prevs, sources, visited)
+	}
+
 }
 
 type DirCell struct {
@@ -104,12 +136,7 @@ func solveMaze2(
 
 	currDir := currentDir(prev, current)
 
-	next := []utils.Cell{
-		current.Up(1),
-		current.Right(1),
-		current.Down(1),
-		current.Left(1),
-	}
+	next := current.NeighborsCross()
 
 	results := make(chan *VisitResult, len(next))
 	var wg sync.WaitGroup
@@ -204,6 +231,133 @@ func VisitCell(
 	return nil
 }
 
+func mazeShortestPaths(maze *utils.Matrix[string], start *utils.Cell) (map[DirCell]int, map[DirCell]map[DirCell]bool) {
+
+	distances := map[DirCell]int{}
+	prevs := map[DirCell]map[DirCell]bool{}
+	unvisited := utils.NewMinHeap[DirCell]()
+
+	itemsByCell := map[DirCell]*utils.Item[DirCell]{}
+
+	startDir := DirCell{
+		dir:  '>',
+		Cell: *start,
+	}
+	distances[startDir] = 0
+	startItem := unvisited.HeapPush(startDir, 0)
+	itemsByCell[startDir] = startItem
+
+	maxCost := math.MaxInt32
+
+	for unvisited.Len() > 0 {
+		curr, _ := unvisited.HeapPop()
+
+		if *maze.GetAtCell(&curr.Cell) == "E" {
+			maxCost = distances[curr]
+		}
+		if distances[curr] > maxCost {
+			// no point in going further
+			continue
+		}
+
+		for _, n := range curr.NeighborsCross() {
+			nVal := maze.GetAtCell(&n)
+			if nVal != nil && (*nVal == "." || *nVal == "E") {
+
+				nextDir := currentDir(&curr.Cell, &n)
+				if isOppositeDir(curr.dir, nextDir) {
+					// no point in going back
+					continue
+				}
+				nDir := DirCell{
+					dir:  nextDir,
+					Cell: n,
+				}
+
+				cost := calcCostDir(curr.dir, curr.Cell, n)
+				alt := distances[curr] + cost
+
+				if bestDist, ok := distances[nDir]; !ok || alt < bestDist {
+					distances[nDir] = alt
+					prevs[nDir] = map[DirCell]bool{curr: true}
+
+					if _, hOk := itemsByCell[nDir]; !hOk {
+						item := unvisited.HeapPush(nDir, alt)
+						itemsByCell[nDir] = item
+					} else {
+						unvisited.Update(itemsByCell[nDir], alt)
+					}
+				} else if alt == bestDist {
+					prevs[nDir][curr] = true
+				}
+			}
+		}
+	}
+
+	return distances, prevs
+}
+
+func mazeShortestPath(maze *utils.Matrix[string], start *utils.Cell) (map[utils.Cell]int, map[utils.Cell]*utils.Cell) {
+
+	distances := map[utils.Cell]int{}
+	prevs := map[utils.Cell]*utils.Cell{}
+	unvisited := utils.NewMinHeap[utils.Cell]()
+
+	itemsByCell := map[utils.Cell]*utils.Item[utils.Cell]{}
+
+	distances[*start] = 0
+	startItem := unvisited.HeapPush(*start, 0)
+	itemsByCell[*start] = startItem
+
+	for unvisited.Len() > 0 {
+		curr, _ := unvisited.HeapPop()
+
+		for _, n := range curr.NeighborsCross() {
+
+			nVal := maze.GetAtCell(&n)
+			if nVal != nil && (*nVal == "." || *nVal == "E") {
+				cost := calcCost(prevs[curr], curr, n)
+				alt := distances[curr] + cost
+
+				if bestDist, ok := distances[n]; !ok || alt < bestDist {
+					distances[n] = alt
+					prevs[n] = &curr
+
+					if _, ok := itemsByCell[n]; !ok {
+						item := unvisited.HeapPush(n, alt)
+						itemsByCell[n] = item
+					} else {
+						unvisited.Update(itemsByCell[n], alt)
+					}
+				}
+			}
+		}
+	}
+
+	return distances, prevs
+}
+
+func calcCostDir(currDir rune, curr utils.Cell, next utils.Cell) int {
+	nextDir := currentDir(&curr, &next)
+	isOpposite := isOppositeDir(currDir, nextDir)
+	cost := 1
+	if isOpposite {
+		cost += 2000
+	} else if currDir != nextDir {
+		cost += 1000
+	}
+	return cost
+}
+
+func calcCost(prev *utils.Cell, curr utils.Cell, next utils.Cell) int {
+	currDir := '>'
+	if prev != nil {
+		currDir = currentDir(prev, &curr)
+	}
+
+	return calcCostDir(currDir, curr, next)
+}
+
 func solveMaze(maze *utils.Matrix[string], prev, current *utils.Cell, currCost int, visited *sync.Map) int {
 
 	if *maze.GetAtCell(current) == "E" {
@@ -268,20 +422,20 @@ func isOppositeDir(dir rune, dir2 rune) bool {
 	return (dir == '^' && dir2 == 'v') || (dir == 'v' && dir2 == '^') || (dir == '<' && dir2 == '>') || (dir == '>' && dir2 == '<')
 }
 
-func currentDir(prev *utils.Cell, start *utils.Cell) rune {
-	if prev == nil {
+func currentDir(curr *utils.Cell, next *utils.Cell) rune {
+	if curr == nil {
 		return '>'
 	}
 
-	if prev.R == start.R {
-		if prev.C < start.C {
+	if curr.R == next.R {
+		if curr.C < next.C {
 			return '>'
-		} else if prev.C > start.C {
+		} else if curr.C > next.C {
 			return '<'
 		}
 		panic("invalid direction")
 	} else {
-		if prev.R < start.R {
+		if curr.R < next.R {
 			return 'v'
 		} else {
 			return '^'
