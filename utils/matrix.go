@@ -53,6 +53,16 @@ func NewMatrix[T any](matrix [][]T) *Matrix[T] {
 	}
 }
 
+func NewMatrixFromSize[T any](width int, height int) *Matrix[T] {
+	matrix := make([][]T, height)
+	for i := range matrix {
+		matrix[i] = make([]T, width)
+	}
+	return &Matrix[T]{
+		Matrix: matrix,
+	}
+}
+
 func MapToInt(c rune) int {
 	n, err := strconv.Atoi(string(c))
 	if err != nil {

@@ -50,3 +50,18 @@ func Coalesce[T any](v1 *T, fallback T) T {
 func Ptr[T any](x T) *T {
 	return &x
 }
+
+func BinarySearch(start int, end int, compare func(int) int) int {
+	for start < end {
+		mid := start + (end-start)/2
+		cmp := compare(mid)
+		if cmp == 0 {
+			return mid
+		} else if cmp > 0 {
+			end = mid
+		} else {
+			start = mid + 1
+		}
+	}
+	return start
+}
