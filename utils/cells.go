@@ -32,6 +32,23 @@ func (c Cell) Dir(x string) Cell {
 	}
 }
 
+func (c Cell) GetDir(next Cell) string {
+	if c.R == next.R {
+		if c.C < next.C {
+			return ">"
+		} else if c.C > next.C {
+			return "<"
+		}
+		panic("invalid direction")
+	} else {
+		if c.R < next.R {
+			return "v"
+		} else {
+			return "^"
+		}
+	}
+}
+
 func (c Cell) Up(d int) Cell {
 	return Cell{
 		R: c.R - d,
