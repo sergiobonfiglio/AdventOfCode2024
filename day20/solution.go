@@ -2,6 +2,7 @@ package main
 
 import (
 	"AdventOfCode2024/utils"
+	"slices"
 )
 
 func part1(input string) any {
@@ -9,7 +10,7 @@ func part1(input string) any {
 	const minPico = 100
 
 	maze, start, end := parseInput(input)
-	cheats := findCheats(maze, start, end, maxPicoCheat)
+	cheats := findCheats(maze, start, end, maxPicoCheat, minPico)
 
 	byPico := utils.GroupBy(cheats, func(cheat Cheat) int { return cheat.savedPico })
 
@@ -28,7 +29,7 @@ func part2(input string) any {
 	const minPico = 100
 
 	maze, start, end := parseInput(input)
-	cheats := findCheats(maze, start, end, maxPicoCheat)
+	cheats := findCheats(maze, start, end, maxPicoCheat, minPico)
 
 	byPico := utils.GroupBy(cheats, func(cheat Cheat) int { return cheat.savedPico })
 
@@ -42,32 +43,33 @@ func part2(input string) any {
 	return tot
 }
 
-func findCheats(maze *utils.Matrix[string], start, end *utils.Cell, max int) []Cheat {
+func findCheats(maze *utils.Matrix[string], start, end *utils.Cell, max int, minSaving int) []Cheat {
 
-	distStart, _ := mazeShortestPath(maze, start)
+	distStart, prevs := mazeShortestPath(maze, start)
 	distEnd, _ := mazeShortestPath(maze, end)
 
 	shortestPath := distStart[*end]
 
 	var cheats []Cheat
 
-	for cell, _ := range distStart {
+	mainPath, _ := buildPath(end, prevs)
 
-		neighbors := getCellsWithin(&cell, max)
+	for _, cell := range mainPath {
+
+		neighbors := getCellsWithin(cell, max)
 
 		for _, neighbor := range neighbors {
-			if _, ok := distEnd[*neighbor]; !ok {
-				continue
-			}
-			mdist := cell.DistManhattan(neighbor)
-			alt := distEnd[*neighbor] + mdist + distStart[cell]
-			if alt < shortestPath {
-				cheat := Cheat{
-					start:     cell,
-					end:       *neighbor,
-					savedPico: shortestPath - alt,
+			if dEnd, ok := distEnd[*neighbor]; ok {
+				mdist := cell.DistManhattan(neighbor)
+				alt := dEnd + mdist + distStart[*cell]
+				if alt < shortestPath && shortestPath-alt >= minSaving {
+					cheat := Cheat{
+						start:     *cell,
+						end:       *neighbor,
+						savedPico: shortestPath - alt,
+					}
+					cheats = append(cheats, cheat)
 				}
-				cheats = append(cheats, cheat)
 			}
 		}
 	}
@@ -107,6 +109,21 @@ func parseInput(input string) (*utils.Matrix[string], *utils.Cell, *utils.Cell) 
 type Cheat struct {
 	start, end utils.Cell
 	savedPico  int
+}
+
+func buildPath(end *utils.Cell, prevs map[utils.Cell]*utils.Cell) ([]*utils.Cell, map[utils.Cell]bool) {
+	curr := end
+	var pathList []*utils.Cell
+	pathCells := map[utils.Cell]bool{}
+	for prev, ok := prevs[*curr]; ok; prev, ok = prevs[*curr] {
+		pathList = append(pathList, curr)
+		pathCells[*curr] = true
+		curr = prev
+	}
+	pathList = append(pathList, curr)
+	pathCells[*curr] = true
+	slices.Reverse(pathList)
+	return pathList, pathCells
 }
 
 func mazeShortestPath(maze *utils.Matrix[string], start *utils.Cell) (map[utils.Cell]int, map[utils.Cell]*utils.Cell) {

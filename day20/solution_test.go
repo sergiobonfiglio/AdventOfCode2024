@@ -53,7 +53,7 @@ func TestPart1(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			maze, start, end := parseInput(tt.input)
-			cheats := findCheats(maze, start, end, 2)
+			cheats := findCheats(maze, start, end, 2, 0)
 			byPico := utils.GroupBy(cheats, func(cheat Cheat) int { return cheat.savedPico })
 
 			if len(byPico) != len(tt.want) {
@@ -114,7 +114,7 @@ func TestPart2(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			maze, start, end := parseInput(tt.input)
-			cheats := findCheats(maze, start, end, 20)
+			cheats := findCheats(maze, start, end, 20, 50)
 			byPico := utils.GroupBy(cheats, func(cheat Cheat) int { return cheat.savedPico })
 
 			for _, c := range tt.want {
