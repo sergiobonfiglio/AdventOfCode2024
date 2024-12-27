@@ -22,13 +22,13 @@ func part1(input string) any {
 func part2(input string) any {
 	secrets := parseInput(input)
 
-	glMap := map[[4]int]int{}
+	glMap := map[[4]int8]int{}
 
 	maxBananas := 0
 	for _, secret := range secrets {
 		curr := nextSecret(secret)
 		prev := lastDigit(secret)
-		currMap := map[[4]int]int{}
+		currMap := map[[4]int8]int{}
 
 		changes := NewChanges()
 		changes.add(lastDigit(curr) - prev)
@@ -43,8 +43,8 @@ func part2(input string) any {
 			if changes.full {
 				key := changes.get()
 				if _, ok := currMap[key]; !ok {
-					currMap[key] = cld
-					glMap[key] += cld
+					currMap[key] = int(cld)
+					glMap[key] += int(cld)
 					if glMap[key] > maxBananas {
 						maxBananas = glMap[key]
 					}
@@ -92,12 +92,12 @@ func mix(secret int, next int) int {
 	return secret ^ next
 }
 
-func lastDigit(x int) int {
-	return x % 10
+func lastDigit(x int) int8 {
+	return int8(x % 10)
 }
 
 type Changes struct {
-	changes [4]int
+	changes [4]int8
 	full    bool
 	nextI   int
 }
@@ -105,11 +105,11 @@ type Changes struct {
 func NewChanges() *Changes {
 	return &Changes{
 		nextI:   0,
-		changes: [4]int{},
+		changes: [4]int8{},
 	}
 }
 
-func (c *Changes) add(change int) {
+func (c *Changes) add(change int8) {
 	c.changes[c.nextI] = change
 	c.nextI = (c.nextI + 1) % len(c.changes)
 	if c.nextI == 0 {
@@ -117,10 +117,10 @@ func (c *Changes) add(change int) {
 	}
 }
 
-func (c *Changes) get() [4]int {
-	out := make([]int, len(c.changes))
+func (c *Changes) get() [4]int8 {
+	out := [4]int8{}
 	for i := 0; i < len(c.changes); i++ {
 		out[i] = c.changes[(c.nextI+i)%len(c.changes)]
 	}
-	return [4]int(out)
+	return out
 }
