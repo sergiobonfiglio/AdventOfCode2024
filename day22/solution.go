@@ -23,12 +23,11 @@ func part2(input string) any {
 	secrets := parseInput(input)
 
 	glMap := map[[4]int8]int{}
-
 	maxBananas := 0
 	for _, secret := range secrets {
 		curr := nextSecret(secret)
 		prev := lastDigit(secret)
-		currMap := map[[4]int8]int{}
+		currMap := make(map[[4]int8]int, 2000)
 
 		changes := NewChanges()
 		changes.add(lastDigit(curr) - prev)
