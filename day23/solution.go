@@ -1,6 +1,7 @@
 package main
 
 import (
+	"AdventOfCode2024/utils"
 	"slices"
 	"strings"
 )
@@ -55,6 +56,11 @@ func part1(input string) any {
 }
 
 func part2(input string) any {
+	return part2_BronKerbosch(input)
+	//return part2_v1(input)
+}
+
+func part2_v1(input string) any {
 	network := &Graph{
 		edges: make(map[Edge]bool),
 		vert:  make(map[string][]*Edge),
@@ -72,11 +78,8 @@ func part2(input string) any {
 	currMaxSize := 1
 	currMaxKey := ""
 	for pc, _ := range network.vert {
-		edges := network.vert[pc]
-		var neighbors []string
-		for _, edge := range edges {
-			neighbors = append(neighbors, edge.Other(pc))
-		}
+
+		neighbors := network.Neighbors(pc)
 
 		for i := len(neighbors); i >= currMaxSize; i-- {
 			compSubsets := map[string][]string{}
@@ -101,6 +104,33 @@ func part2(input string) any {
 	}
 
 	return currMaxKey
+}
+
+func part2_BronKerbosch(input string) any {
+	network := &Graph{
+		edges: make(map[Edge]bool),
+		vert:  make(map[string][]*Edge),
+	}
+	for _, line := range strings.Split(input, "\n") {
+		if line == "" {
+			continue
+		}
+
+		connection := strings.Split(line, "-")
+		network.AddEdge(connection[0], connection[1])
+	}
+
+	cliques := network.BronKerbosch()
+
+	var maxClique []string
+	for _, clique := range cliques {
+		if len(clique) > len(maxClique) {
+			maxClique = clique
+		}
+	}
+	slices.Sort(maxClique)
+
+	return strings.Join(maxClique, ",")
 }
 
 type Edge struct {
@@ -166,4 +196,56 @@ func subsetsRec(nodes []string, minSize int, index int, current []string) [][]st
 
 func subsets(nodes []string, minSize int) [][]string {
 	return subsetsRec(nodes, minSize, 0, []string{})
+}
+
+func (g *Graph) Neighbors(node string) []string {
+	edges := g.vert[node]
+	var neighbors []string
+	for _, edge := range edges {
+		neighbors = append(neighbors, edge.Other(node))
+	}
+	return neighbors
+}
+func (g *Graph) NeighborsSet(node string) map[string]bool {
+	edges := g.vert[node]
+	neighbors := map[string]bool{}
+	for _, edge := range edges {
+		neighbors[edge.Other(node)] = true
+	}
+	return neighbors
+}
+
+func (g *Graph) BronKerbosch() [][]string {
+	return g._BronKerbosch([]string{}, utils.Keys(g.vert), []string{})
+}
+
+func (g *Graph) _BronKerbosch(R []string, P []string, X []string) [][]string {
+	if len(P) == 0 && len(X) == 0 {
+		return [][]string{append([]string{}, R...)}
+	}
+
+	var allCliques [][]string
+
+	var pivot string
+	if len(P) > 0 {
+		pivot = P[0]
+	} else {
+		pivot = X[0]
+	}
+	pivotNeighbors := g.NeighborsSet(pivot)
+	pivotedP := utils.Filter(P, func(x string) bool { return !pivotNeighbors[x] })
+	for _, v := range pivotedP {
+		neighbors := g.NeighborsSet(v)
+
+		p := utils.Filter(P, func(x string) bool { return neighbors[x] })
+		x := utils.Filter(X, func(x string) bool { return neighbors[x] })
+
+		vCliques := g._BronKerbosch(append(R, v), p, x)
+		allCliques = append(allCliques, vCliques...)
+
+		P = utils.Filter(P, func(x string) bool { return x != v })
+		X = append(X, v)
+	}
+
+	return allCliques
 }
